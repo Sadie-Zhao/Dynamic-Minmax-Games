@@ -44,6 +44,7 @@ learning_rate, decay_outer = False, decay_inner = False):
     valuations_hist = []
     budgets_hist = []
     supplies_hist = []
+    obj_hist = []
     cumulative_loss_hist = [0]
     prices = np.zeros(num_goods)
     demands = np.zeros((num_buyers, num_goods))
@@ -60,6 +61,7 @@ learning_rate, decay_outer = False, decay_inner = False):
     supplies = lib.get_supplies(num_goods, supplies_range, supplies_addition)
     supplies_hist.append(supplies)
 
+
     for iter in range(num_iters):
         if (not iter % 500):
             print(f" ----- Iteration {iter}/{num_iters} ----- ")
@@ -74,7 +76,7 @@ learning_rate, decay_outer = False, decay_inner = False):
             prices = supplies - np.sum(demands, axis = 0)
             old_prices = prices_hist[-1]
 
-        prices = np.clip(prices, 0.01, a_max = None) # Make sure the price is positive
+        prices = np.clip(prices, a_min=0.01, a_max = None) # Make sure the price is positive
         prices_hist.append(prices)
 
 
@@ -92,10 +94,15 @@ learning_rate, decay_outer = False, decay_inner = False):
         demands = project_to_bugdet_set(demands, old_prices, budgets) #is here p^(t-1) or p^(t)
         demands_hist.append(demands)
 
-        # Update cumulative loss
-        lib.update_cumulative_loss(prices, demands, supplies, budgets, valuations, cumulative_loss_hist, obj_func)
+        # Update objective history
+        obj_hist.append(obj_func(prices, demands, supplies, budgets, valuations))
+        # Update cumulative_loss
+        lib.update_cumulative_loss(obj_hist, cumulative_loss_hist)
     
-    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, cumulative_loss_hist
+    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, obj_hist, cumulative_loss_hist
+
+
+
 
 
 
@@ -131,6 +138,7 @@ learning_rate, decay_outer = False, decay_inner = False):
     valuations_hist = []
     budgets_hist = []
     supplies_hist = []
+    obj_hist = []
     cumulative_loss_hist = [0]
     prices = np.zeros(num_goods)
     demands = np.zeros((num_buyers, num_goods))
@@ -179,7 +187,9 @@ learning_rate, decay_outer = False, decay_inner = False):
         # No projection Step
         demands_hist.append(demands)
 
+        # Update objective history
+        obj_hist.append(obj_func(prices, demands, supplies, budgets, valuations))
         # Update cumulative_loss
-        lib.update_cumulative_loss(prices, demands, supplies, budgets, valuations, cumulative_loss_hist, obj_func)
+        lib.update_cumulative_loss(obj_hist, cumulative_loss_hist)
 
-    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, cumulative_loss_hist
+    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, obj_hist, cumulative_loss_hist

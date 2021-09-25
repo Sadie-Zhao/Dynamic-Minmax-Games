@@ -74,7 +74,7 @@ def get_cd_util_gradient(allocations, valuations):
 
 def get_linear_obj(prices, demands, supplies, budgets, valuations):
     utils = np.sum(valuations*demands, axis = 1)
-    return supplies.T @ prices + budgets.T @ np.log(utils)
+    return supplies.T @ prices + budgets.T @ np.log(utils.clip(min=0.0001))
 
 
 def get_leontief_obj(prices, demands, supplies, budgets, valuations):
@@ -84,7 +84,7 @@ def get_leontief_obj(prices, demands, supplies, budgets, valuations):
 
 def get_cd_obj(prices, demands, supplies, budgets, valuations):
     utils = np.prod(np.power(demands, valuations), axis= 1)
-    return supplies.T @ prices + budgets.T @ np.log(utils)
+    return supplies.T @ prices + budgets.T @ np.log(utils.clip(min=0.0001))
 
 
 
@@ -101,9 +101,9 @@ def check_positive_matrix(matrix):
     return all(bool_value == True for bool_value in bool_list)
         
 
-def update_cumulative_loss(prices, demands, supplies, budgets, valuations, cumulative_loss_hist, obj_func):
+def update_cumulative_loss(obj_hist, cumulative_loss_hist):
     cumulative_loss = cumulative_loss_hist[-1]
-    cumulative_loss_hist.append(cumulative_loss + obj_func(prices, demands, supplies, budgets, valuations)) 
+    cumulative_loss_hist.append(cumulative_loss + obj_hist[-1]) 
 
 
 def get_p_cumulative_regret(num_buyers, num_goods, demands_hist, supplies_hist, budgets_hist, valuations_hist, cumulative_loss_hist, obj_func):
