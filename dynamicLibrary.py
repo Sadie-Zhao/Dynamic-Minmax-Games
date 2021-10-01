@@ -1,5 +1,6 @@
 # Library Imports
 from cvxpy import constraints
+import consumerUtility as cu
 import numpy as np
 import cvxpy as cp
 from numpy.core.numeric import ones
@@ -31,7 +32,7 @@ def get_linear_utility(allocation, valuations):
 
 # Leontief utility function: Perfect Complements
 def get_leontief_utility(allocation, valuations):
-    return np.min(allocation/valuations)
+    return np.min(allocation / valuations)
 
 # Cobb-Douglas utility function
 def get_cd_utility(allocation, valuations):
@@ -57,15 +58,7 @@ def get_leontief_util_gradient(allocations, valuations):
     return np.array(grad_matrix)
 
 def get_cd_util_gradient(allocations, valuations):
-    grad_matrix = []
-    for x_i, v_i in zip(allocations, valuations):
-        u_i = get_cd_utility(x_i, v_i)
-        array = np.array([v_ij / x_ij for v_ij, x_ij in zip(x_i, v_i) ])
-        grad_array = u_i * array
-        grad_matrix.append(grad_array)
-    
-    return np.array(grad_matrix)
-
+    return ( np.prod(np.power(allocations, valuations), axis = 1)*( valuations / allocations.clip(min = 0.001) ).T).T
 
 
 
@@ -73,7 +66,7 @@ def get_cd_util_gradient(allocations, valuations):
 ################### Objective Functions ##########################
 
 def get_linear_obj(prices, demands, supplies, budgets, valuations):
-    utils = np.sum(valuations*demands, axis = 1)
+    utils = np.sum(valuations * demands, axis = 1)
     return supplies.T @ prices + budgets.T @ np.log(utils.clip(min=0.0001))
 
 
@@ -89,17 +82,59 @@ def get_cd_obj(prices, demands, supplies, budgets, valuations):
 
 
 
+
+
+#################### Value Functions ###################################
+def get_linear_value(prices, demands, budgets, valuations):
+    utils = np.zeros(budgets.shape[0])
+    for buyer in range(budgets.shape[0]):
+        b = budgets[buyer]
+        v = valuations[buyer,:]
+        utils[buyer] = cu.get_linear_indirect_utill(prices.clip(min= 0.0001), b, v)
+    # return np.sum(prices) + budgets.T @ np.log(utils) + np.sum(budgets) - np.sum(demands @ prices )
+    return np.sum(prices) + budgets.T @ np.log(utils.clip(min= 0.01))
+
+def get_cd_value(prices, demands, budgets, valuations):
+    utils = np.zeros(budgets.shape[0])
+    for buyer in range(budgets.shape[0]):
+        b = budgets[buyer]
+        v = valuations[buyer,:]
+        utils[buyer] = cu.get_CD_indirect_util(prices.clip(min= 0.0001), b, v)
+    return np.sum(prices) + budgets.T @ np.log(utils.clip(min= 0.0001)) 
+
+def get_leontief_value(prices, demands, budgets, valuations):
+    utils = np.zeros(budgets.shape[0])
+    for buyer in range(budgets.shape[0]):
+        b = budgets[buyer]
+        v = valuations[buyer,:]
+        utils[buyer] = cu.get_leontief_indirect_util(prices.clip(min= 0.0001), b, v)
+    return np.sum(prices) + budgets.T @ np.log(utils.clip(min= 0.0001)) 
+
+
+def get_average_value_static(value_func, prices_hist, demands_hist, budgets, valuations):
+    value_avg_hist = []
+    for i in range(0, len(demands_hist)):
+        x = np.mean(np.array(demands_hist[:i+1]).clip(min = 0), axis = 0)
+        p = np.mean(np.array(prices_hist[:i+1]).clip(min = 0), axis = 0)
+        value = value_func(p, x, budgets, valuations)
+        value_avg_hist.append(value)
+    return value_avg_hist
+
+def get_average_value_dynamic(value_func, prices_hist, demands_hist, budgets_hist, valuations_hist):
+    value_avg_hist = []
+    for i in range(0, len(demands_hist)):
+        x = np.mean(np.array(demands_hist[:i+1]).clip(min = 0), axis = 0)
+        p = np.mean(np.array(prices_hist[:i+1]).clip(min = 0), axis = 0)
+        budgets = np.mean(np.array(budgets_hist[:i+1]).clip(min = 0), axis = 0)
+        valuations = np.mean(np.array(valuations_hist[:i+1]).clip(min = 0), axis = 0)
+        value = value_func(p, x, budgets, valuations)
+        value_avg_hist.append(value)
+    return value_avg_hist
+
+
+
+
 ################### Cumulative Regret Functions #######################
-
-def check_positive_array(array):
-    return all(element >= 0 for element in array)
-
-def check_positive_matrix(matrix):
-    bool_list = []
-    for row in matrix:
-        bool_list.append(all(element >= 0 for element in row))
-    return all(bool_value == True for bool_value in bool_list)
-        
 
 def update_cumulative_loss(obj_hist, cumulative_loss_hist):
     cumulative_loss = cumulative_loss_hist[-1]
@@ -132,5 +167,3 @@ def get_X_cumulative_regret(num_buyers, num_goods, prices_hist, supplies_hist, b
     cum_loss_with_constant_X = prob.value
 
     return cumulative_loss_hist[-1] - cum_loss_with_constant_X
-
-

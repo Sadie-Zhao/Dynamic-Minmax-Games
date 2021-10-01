@@ -1,5 +1,6 @@
 import numpy as np
 import dynamicLibrary as lib
+import consumerUtility as cu
 np.set_printoptions(precision=3)
 
 
@@ -16,12 +17,81 @@ def project_to_bugdet_set(X, p, b):
     return X
 
 
+
+
+
+def dynamic_Nested_GD_with_max_oracle(num_iters, num_goods, num_buyers, utility_type, prices_0,
+valuations_range, valuations_addition,
+budgets_range, budgets_addition,
+supplies_range, supplies_addition,
+learning_rate):
+    # Set up functions to be used
+    if utility_type == "linear":
+        marshallian_demand_func = cu.get_linear_marshallian_demand
+    elif utility_type == "leontief":
+        marshallian_demand_func = cu.get_leontief_marshallian_demand
+    elif utility_type == "cd":
+        marshallian_demand_func = cu.get_CD_marshallian_demand
+
+
+    # Set up lists for data recording
+    prices_hist = []
+    demands_hist = []
+    valuations_hist = []
+    budgets_hist = []
+    supplies_hist = []
+    prices = np.copy(prices_0)
+    demands = np.zeros((num_buyers, num_goods))
+
+    ################# Get the problem f_t ################
+    valuations = lib.get_valuations(num_buyers, num_goods, valuations_range, valuations_addition)
+    # Normalize valuations for Cobb-Douglas
+    if utility_type == "cd":
+        valuations = (valuations.T/ np.sum(valuations, axis = 1)).T
+    valuations_hist.append(valuations)
+    budgets = lib.get_budgets(num_buyers, budgets_range, budgets_addition)
+    budgets_hist.append(budgets)
+    supplies = lib.get_supplies(num_goods, supplies_range, supplies_addition)
+    supplies_hist.append(supplies)
+    
+    if utility_type == "cd":
+        demands = np.zeros(valuations.shape).clip(min = 0.001)  
+
+    ################### Start the iterations ####################
+    for iter in range(1, num_iters):
+        if (not iter % 50):
+            print(f" ----- Iteration {iter}/{num_iters} ----- ")
+
+        prices_hist.append(prices)
+
+        for buyer in range(budgets.shape[0]):
+            demands[buyer,:] = marshallian_demand_func(prices, budgets[buyer], valuations[buyer])
+            if utility_type == "cd":
+                demands[buyer,:] = demands[buyer,:].clip(min = 0.01)
+
+        if utility_type == "leontief":
+            demands = demands.clip(min=0)
+        demands_hist.append(demands)
+
+        demand = np.sum(demands, axis = 0)
+        demand = demand.clip(min = 0.01)
+        excess_demand = demand - 1
+        step_size = learning_rate * excess_demand
+        prices += step_size * ((prices) > 0)
+
+        if utility_type == "leontief":
+            prices = prices.clip(min = 0.00001)
+        else:
+            prices = prices.clip(min=0.01)
+        
+    return (demands, prices, demands_hist, prices_hist)
+
+
 def dynamic_GDA_with_oracle(num_iters, num_goods, num_buyers, utility_type, prices_0,
 valuations_range, valuations_addition,
 budgets_range, budgets_addition,
 supplies_range, supplies_addition,
 learning_rate, decay_outer = False, decay_inner = False):
-#if learning rate the same for each iterations?
 
     # Set up functions to be used
     if utility_type == "linear":
@@ -44,8 +114,6 @@ learning_rate, decay_outer = False, decay_inner = False):
     valuations_hist = []
     budgets_hist = []
     supplies_hist = []
-    obj_hist = []
-    cumulative_loss_hist = [0]
     prices = np.zeros(num_goods)
     demands = np.zeros((num_buyers, num_goods))
 
@@ -60,23 +128,30 @@ learning_rate, decay_outer = False, decay_inner = False):
     budgets_hist.append(budgets)
     supplies = lib.get_supplies(num_goods, supplies_range, supplies_addition)
     supplies_hist.append(supplies)
+    
+    if utility_type == "cd":
+        demands = np.zeros(valuations.shape).clip(min = 0.001)  
 
 
-    for iter in range(num_iters):
-        if (not iter % 500):
+    ################### Start the iterations ####################
+    for iter in range(1, num_iters):
+        if (not iter % 50):
             print(f" ----- Iteration {iter}/{num_iters} ----- ")
 
 
-
         ##################### Price Step #####################
-        if iter == 0:
+        demand_row_sum = np.sum(demands, axis = 0)
+        excess_demands = demand_row_sum - supplies
+
+        if iter == 1 :
             prices = np.copy(prices_0)
             old_prices = prices
         else:
-            prices = supplies - np.sum(demands, axis = 0)
+            step_size = learning_rate[0] * excess_demands
+            prices += step_size * (prices > 0)
             old_prices = prices_hist[-1]
 
-        prices = np.clip(prices, a_min=0.01, a_max = None) # Make sure the price is positive
+        prices = np.clip(prices, a_min=0.001, a_max = None) # Make sure the price is positive
         prices_hist.append(prices)
 
 
@@ -85,25 +160,16 @@ learning_rate, decay_outer = False, decay_inner = False):
         # Gradient Step
         constants_list = []
         for v_i, b_i, x_i in zip(valuations, budgets, demands):
-            c_i = b_i / max(util_func(x_i, v_i), 0.01)
+            c_i = b_i / max(util_func(x_i, v_i), 0.001)
             constants_list.append(c_i)
-        constants = (np.array(constants_list) * learning_rate).reshape(num_buyers, 1)
+        constants = (np.array(constants_list) * learning_rate[1]).reshape(num_buyers, 1)
         demands += constants * util_gradient_func(demands, valuations)
 
         # Projection Step
         demands = project_to_bugdet_set(demands, old_prices, budgets) #is here p^(t-1) or p^(t)
         demands_hist.append(demands)
-
-        # Update objective history
-        obj_hist.append(obj_func(prices, demands, supplies, budgets, valuations))
-        # Update cumulative_loss
-        lib.update_cumulative_loss(obj_hist, cumulative_loss_hist)
     
-    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, obj_hist, cumulative_loss_hist
-
-
-
-
+    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist
 
 
 
@@ -115,7 +181,6 @@ valuations_range, valuations_addition,
 budgets_range, budgets_addition,
 supplies_range, supplies_addition,
 learning_rate, decay_outer = False, decay_inner = False):
-#if learning rate the same for each iterations?
 
     # Set up functions to be used
     if utility_type == "linear":
@@ -138,12 +203,10 @@ learning_rate, decay_outer = False, decay_inner = False):
     valuations_hist = []
     budgets_hist = []
     supplies_hist = []
-    obj_hist = []
-    cumulative_loss_hist = [0]
     prices = np.zeros(num_goods)
     demands = np.zeros((num_buyers, num_goods))
-    
 
+    
     ################# Get the problem f_t ################
     valuations = lib.get_valuations(num_buyers, num_goods, valuations_range, valuations_addition)
     # Normalize valuations for Cobb-Douglas
@@ -154,24 +217,31 @@ learning_rate, decay_outer = False, decay_inner = False):
     budgets_hist.append(budgets)
     supplies = lib.get_supplies(num_goods, supplies_range, supplies_addition)
     supplies_hist.append(supplies)
+    
+    if utility_type == "cd":
+        demands = np.zeros(valuations.shape).clip(min = 0.001)  
 
 
-    for iter in range(num_iters):
-        if (not iter % 500):
+    ################### Start the iterations ####################
+    for iter in range(1, num_iters):
+        if (not iter % 50):
             print(f" ----- Iteration {iter}/{num_iters} ----- ")
 
 
         ##################### Price Step #####################
-        if iter == 0:
+        demand_row_sum = np.sum(demands, axis = 0)
+        excess_demands = demand_row_sum - supplies
+
+        if iter == 1 :
             prices = np.copy(prices_0)
             old_prices = prices
         else:
-            prices = supplies - np.sum(demands, axis = 0)
+            step_size = learning_rate[0] * excess_demands
+            prices += step_size * (prices > 0)
             old_prices = prices_hist[-1]
 
-        prices = np.clip(prices, 0.01, a_max = None) # Make sure the price is positive
+        prices = np.clip(prices, a_min=0.001, a_max = None) # Make sure the price is positive
         prices_hist.append(prices)
-
 
 
         ##################### Demand Step ####################
@@ -179,17 +249,15 @@ learning_rate, decay_outer = False, decay_inner = False):
         # Gradient Step
         constants_list = []
         for v_i, b_i, x_i in zip(valuations, budgets, demands):
-            c_i = b_i / max(util_func(x_i, v_i), 0.01)
+            c_i = b_i / max(util_func(x_i, v_i), 0.001)
             constants_list.append(c_i)
-        constants = (np.array(constants_list) * learning_rate).reshape(num_buyers, 1)
-        demands += (constants *util_gradient_func(demands, valuations)) - old_prices
+        constants = np.array(constants_list).reshape(num_buyers, 1)
+        demands += learning_rate[1] * (constants * (util_gradient_func(demands, valuations) - old_prices))
 
         # No projection Step
         demands_hist.append(demands)
 
-        # Update objective history
-        obj_hist.append(obj_func(prices, demands, supplies, budgets, valuations))
-        # Update cumulative_loss
-        lib.update_cumulative_loss(obj_hist, cumulative_loss_hist)
+    
+    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist
 
-    return prices_hist, demands_hist, valuations_hist, budgets_hist, supplies_hist, obj_hist, cumulative_loss_hist
+
