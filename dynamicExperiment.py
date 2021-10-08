@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import date
-import fisherNestedMinmax as nminmax
 
 
 num_iterations = 1000
