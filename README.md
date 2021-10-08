@@ -22,11 +22,13 @@ The R libraries to included are run by the code but in case of version failure, 
 To run the experiments and obtain the associated graphs and statistical test results, run the following:
 
 ```
-python test.py
-Rscript dataAnalysis.R
+python finalExperiment.py
 ```
 # Results
 
-The first row describes the average trajectory of the value of the objective function for a randomly initialized market on each iteration of both the max oracle algorithm (in  blue) and the nested gradient ascent descent (in orange) when the starting prices are high, while the second row describes the average trajectory of the objective function when starting prices are low for linear, Cobb-Douglas, and Leontief Fisher markets respectively. The dashed red line represents a convergence rate of 1/sqrt(T)
+In the first figure, trajectory of distance between computed prices, demands and equilibrium prices, demands when dynamic_max_oracle_gd is run on randomly initialized dynamic linear, Cobb-Douglas, and Leontief Fisher markets, respectively, is depicted in blue. The dashed red line represents a convergence rate of 1/sqrt(T).
+In the sencond figure, trajectory of distance between computed prices, demands and equilibrium prices, demands when dynamic_lgda is run on randomly initialized dynamic linear, Cobb-Douglas, and Leontief Fisher markets, respectively, is depicted in blue. The dashed red line represents a convergence rate of 1/sqrt(T).
+In the sencond figure, 
 
-![results](graphs/obj.jpg)
+<!-- [results](graphs/gd_pplusx_dis_graphs_1_runs.jpg)
+[results](graphs/lgda_pplusx_dis_graphs_1_runs.jpg) -->
