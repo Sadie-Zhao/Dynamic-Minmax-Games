@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import date
 import pandas as pd
+import random as random
 
 
 def run_linear_gd_exp(num_exp, num_iterations, num_goods, num_buyers, prices_0):
@@ -178,7 +179,7 @@ def run_leontief_lgda_exp(num_exp, num_iterations, num_goods, num_buyers, prices
 
 if __name__ == '__main__':
     num_iterations = 1000
-    num_experiment = 1
+    num_experiment = 100
     num_buyers =  5
     num_goods = 8 
     learning_rate_linear =  ((5,0.01), (1000**(-1/2),1000**(-1/2))) #0.001,0.0001 for gda #5,0.01 for LGDA!
@@ -189,27 +190,27 @@ if __name__ == '__main__':
     
     #################################################################### GD ################################################
     linear_gd_p_plus_x_dist_hist, linear_gd_obj_dist_hist, linear_gd_value_dist_hist = run_linear_gd_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    linear_gd_p_plus_x_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    linear_gd_obj_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    linear_gd_value_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    # linear_gd_p_plus_x_dist_df = pd.DataFrame(linear_gd_p_plus_x_dist_final)
+    # linear_gd_p_plus_x_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    # linear_gd_obj_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    # linear_gd_value_dist_final = (np.mean(linear_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    linear_gd_p_plus_x_dist_df = pd.DataFrame(linear_gd_p_plus_x_dist_hist)
     # linear_gd_obj_dist_df = pd.DataFrame(linear_gd_p_plus_x_dist_final)
     # linear_gd_value_dist_df = pd.DataFrame(linear_gd_p_plus_x_dist_final)
 
 
     cd_gd_p_plus_x_dist_hist, cd_gd_obj_dist_hist, cd_gd_value_dist_hist = run_cd_gd_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    cd_gd_p_plus_x_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    cd_gd_obj_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    cd_gd_value_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    # cd_gd_p_plus_x_dist_df = pd.DataFrame(cd_gd_p_plus_x_dist_final)
+    # cd_gd_p_plus_x_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    # cd_gd_obj_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    # cd_gd_value_dist_final = (np.mean(cd_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    cd_gd_p_plus_x_dist_df = pd.DataFrame(cd_gd_p_plus_x_dist_hist)
     # cd_gd_obj_dist_df = pd.DataFrame(cd_gd_p_plus_x_dist_final)
     # cd_gd_value_dist_df = pd.DataFrame(cd_gd_p_plus_x_dist_final)
 
     leontief_gd_p_plus_x_dist_hist, leontief_gd_obj_dist_hist, leontief_gd_value_dist_hist = run_leontief_gd_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    leontief_gd_p_plus_x_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[:-10]
-    leontief_gd_obj_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    leontief_gd_value_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[10:-10]
-    # leontief_gd_p_plus_x_dist_df = pd.DataFrame(leontief_gd_p_plus_x_dist_final)
+    # leontief_gd_p_plus_x_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[:-10]
+    # leontief_gd_obj_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    # leontief_gd_value_dist_final = (np.mean(leontief_gd_p_plus_x_dist_hist, axis=0))[10:-10]
+    leontief_gd_p_plus_x_dist_df = pd.DataFrame(leontief_gd_p_plus_x_dist_hist)
     # leontief_gd_obj_dist_df = pd.DataFrame(leontief_gd_p_plus_x_dist_final)
     # leontief_gd_value_dist_df = pd.DataFrame(leontief_gd_p_plus_x_dist_final)
 
@@ -217,29 +218,49 @@ if __name__ == '__main__':
 
     ##################################################### LGDA ##########################################################
     linear_lgda_p_plus_x_dist_hist, linear_lgda_obj_dist_hist, linear_lgda_value_dist_hist = run_linear_lgda_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    linear_lgda_p_plus_x_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    linear_lgda_obj_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    linear_lgda_value_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    # linear_lgda_p_plus_x_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist_final)
-    # linear_lgda_obj_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist_final)
-    # linear_lgda_value_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist_final)
+    # linear_lgda_p_plus_x_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # linear_lgda_obj_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # linear_lgda_value_dist_final = (np.mean(linear_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    linear_lgda_p_plus_x_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist_hist)
+    # linear_lgda_obj_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist_hist)
+    # linear_lgda_value_dist_df = pd.DataFrame(linear_lgda_p_plus_x_dist__hist)
 
 
     cd_lgda_p_plus_x_dist_hist, cd_lgda_obj_dist_hist, cd_lgda_value_dist_hist = run_cd_lgda_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    cd_lgda_p_plus_x_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    cd_lgda_obj_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    cd_lgda_value_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    # cd_lgda_p_plus_x_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist_final)
-    # cd_lgda_obj_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist_final)
-    # cd_lgda_value_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist_final)
+    # cd_lgda_p_plus_x_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # cd_lgda_obj_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # cd_lgda_value_dist_final = (np.mean(cd_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    cd_lgda_p_plus_x_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist_hist)
+    # cd_lgda_obj_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist)
+    # cd_lgda_value_dist_df = pd.DataFrame(cd_lgda_p_plus_x_dist)
 
     leontief_lgda_p_plus_x_dist_hist, leontief_lgda_obj_dist_hist, leontief_lgda_value_dist_hist = run_leontief_lgda_exp(num_experiment, num_iterations, num_goods, num_buyers, prices_0)
-    leontief_lgda_p_plus_x_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    leontief_lgda_obj_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    leontief_lgda_value_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
-    # leontief_lgda_p_plus_x_dist_df = pd.DataFrame(leontief_lgda_p_plus_x_dist_final)
+    # leontief_lgda_p_plus_x_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # leontief_lgda_obj_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    # leontief_lgda_value_dist_final = (np.mean(leontief_lgda_p_plus_x_dist_hist, axis=0))[10:-10]
+    leontief_lgda_p_plus_x_dist_df = pd.DataFrame(leontief_lgda_p_plus_x_dist_hist)
     # leontief_lgda_obj_dist_df = pd.DataFrame(leontief_lgda_p_plus_x_dist_final)
     # leontief_lgda_value_dist_df = pd.DataFrame(leontief_lgda_p_plus_x_dist_final)
+
+
+    linear_gd_p_plus_x_dist_df.to_csv("data/distance/linear_gd_p_plus_x_dist_df.csv")
+    cd_gd_p_plus_x_dist_df.to_csv("data/distance/linear_gd_p_plus_x_dist_df.csv")
+    leontief_gd_p_plus_x_dist_df.to_csv("data/distance/linear_gd_p_plus_x_dist_df.csv")
+
+    linear_lgda_p_plus_x_dist_df.to_csv("data/distance/linear_lgda_p_plus_x_dist_df.csv")
+    cd_lgda_p_plus_x_dist_df.to_csv("data/distance/linear_lgda_p_plus_x_dist_df.csv")
+    leontief_lgda_p_plus_x_dist_df.to_csv("data/distance/linear_lgda_p_plus_x_dist_df.csv")
+
+
+    rand_gd = random.randint(0, num_experiment-1)
+    linear_gd_p_plus_x_dist_final = linear_gd_p_plus_x_dist_hist[rand_gd][10:-10]
+    cd_gd_p_plus_x_dist_final = cd_gd_p_plus_x_dist_hist[rand_gd][10:-10]
+    leontief_gd_p_plus_x_dist_final = leontief_gd_p_plus_x_dist_hist[rand_gd][10:-10]
+    
+    rand_lgda = random.randint(0, num_experiment-1)
+    linear_lgda_p_plus_x_dist_final = linear_lgda_p_plus_x_dist_hist[rand_lgda][10:-10]
+    cd_lgda_p_plus_x_dist_final = cd_lgda_p_plus_x_dist_hist[rand_lgda][10:-10]
+    leontief_lgda_p_plus_x_dist_final = leontief_lgda_p_plus_x_dist_hist[rand_lgda][10:-10]
 
 
     ##################################################### GD graph ###################################
@@ -248,7 +269,7 @@ if __name__ == '__main__':
         'size'   : 22}
 
     plt.rc('font', **font)
-    num_iter = len(linear_gd_value_dist_final)
+    num_iter = len(linear_gd_p_plus_x_dist_final)
     x_forall = np.linspace(1, num_iter, num_iter)
 
     fig, axs = plt.subplots(1, 3) # Create a figure containing a single axes.
@@ -280,7 +301,7 @@ if __name__ == '__main__':
     for ax in axs.flat:
         ax.label_outer()
 
-    name = "gd_pplusx_dist_graphs_1_runs"
+    name = "gd_pplusx_dist_graphs_test"
 
     fig.set_size_inches(18.5, 6.5)
     plt.savefig(f"graphs/{name}.jpg")
@@ -292,7 +313,7 @@ if __name__ == '__main__':
         'size'   : 22}
 
     plt.rc('font', **font)
-    num_iter = len(linear_lgda_value_dist_final)
+    num_iter = len(linear_lgda_p_plus_x_dist_final)
     x_forall = np.linspace(1, num_iter, num_iter)
 
     fig, axs = plt.subplots(1, 3) # Create a figure containing a single axes.
@@ -324,7 +345,7 @@ if __name__ == '__main__':
     for ax in axs.flat:
         ax.label_outer()
 
-    name = "lgda_pplusx_dist_graphs_1_runs"
+    name = "lgda_pplusx_dist_graphs_test"
 
     fig.set_size_inches(18.5, 6.5)
     plt.savefig(f"graphs/{name}.jpg")
